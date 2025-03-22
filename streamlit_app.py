@@ -4,9 +4,8 @@ import streamlit as st
 from snowflake.snowpark.functions import col
 
 import requests
-smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
 
-sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
+
 
 cnx = st.connection("snowflake")
 session = cnx.session()
@@ -31,7 +30,13 @@ ingredient_list = st.multiselect(
     'Choose upto 5 ingredient', df, max_selections=5)
 if ingredient_list:
 
-    ingredient_string = ','.join(x for x in ingredient_list)
+    ingredient_string = ''
+    for fruit_chosen in ingredient_list:
+        ingredient_string += fruit_chosen + ' '
+        smoothiefroot_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{fruit_chosen}")
+        sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
+        
+    
 
     insert_statement = f"""
         INSERT INTO smoothies.public.orders (name_on_order, ingredients)
